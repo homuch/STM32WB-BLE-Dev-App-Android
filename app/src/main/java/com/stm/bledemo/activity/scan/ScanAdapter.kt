@@ -29,6 +29,7 @@ class ScanAdapter (
 ) : RecyclerView.Adapter<ScanAdapter.ViewHolder>() {
 
     private val itemsCopy: ArrayList<ScanResult> = arrayListOf()
+    private val rssiHistory: MutableMap<String, MutableList<Int>> = mutableMapOf()
     private val artworkTitles = listOf(
         "Starry Night",
         "Mona Lisa",
@@ -50,6 +51,10 @@ class ScanAdapter (
         R.drawable.ic_origami
     )
     private val colorResources = listOf(R.color.st_pink, R.color.teal_200, R.color.purple_200, R.color.purple_700, R.color.green, R.color.orange)
+    private val stmTxPower = -44.20289855
+    private val stmRSSIN = 4.830917874
+    private val averageFilterSize = 100
+
 
     interface Delegate {
         fun onConnectButtonClick(result: ScanResult)
@@ -85,6 +90,18 @@ class ScanAdapter (
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val result = items[position]
+        val address = result.device.address
+
+        // Store RSSI history
+        rssiHistory.getOrPut(address) { mutableListOf() }.add(result.rssi)
+        if ((rssiHistory[address]?.size ?: 0) > averageFilterSize) {
+            rssiHistory[address]?.remove(0)
+        }
+
+        // Calculate average RSSI
+        rssiHistory[address]?.sort()
+        val avgRssi = rssiHistory[address]?.let { calculateMedian(it) } ?: result.rssi
+
         // Generating a random index based on the device address for consistent image and color
         val randomNameIndex = abs(result.device.address.hashCode()) % artworkTitles.size
         val randomIndex = abs(result.device.address.hashCode()) % imageResources.size
@@ -93,9 +110,9 @@ class ScanAdapter (
             deviceName.text = result.device.name ?: artworkTitles[randomNameIndex]
             macAddress.text = result.device.address
             signalStrength.text = "${result.rssi} dBm"
-            val distance = 10.0.pow((-15 - result.rssi) / 30.0)
-            estiDist.text = String.format(Locale.getDefault(), "%.2f m", distance / 100.0)
-            bluetoothIcon.setImageResource(imageResources[randomIndex])
+            val distance = 10.0.pow((stmTxPower - avgRssi) / (10.0 * stmRSSIN))
+            estiDist.text = String.format(Locale.getDefault(), "%.2f m", distance)
+           bluetoothIcon.setImageResource(imageResources[randomIndex])
             bluetoothIcon.imageTintList = ContextCompat.getColorStateList(holder.itemView.context, colorResources[randomIndex])
 
 //            connectButton.visibility = if (!result.isConnectable) View.GONE else View.VISIBLE
@@ -134,6 +151,15 @@ class ScanAdapter (
             item.device.name != null && item.device.name.uppercase().contains(value.uppercase())
         } else {
             item.rssi >= value.toInt()
+        }
+    }
+
+    private fun calculateMedian(list: List<Int>): Int {
+        val size = list.size
+        return if (size % 2 == 0) {
+            (list[size / 2 - 1] + list[size / 2]) / 2
+        } else {
+            list[size / 2]
         }
     }
 }
