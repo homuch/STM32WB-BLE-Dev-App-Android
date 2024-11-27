@@ -205,7 +205,7 @@ object BLEManager {
 
         override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
             Timber.i("ATT MTU changed to $mtu, Success: ${status == BluetoothGatt.GATT_SUCCESS}")
-            channel.offer(BLEResult("MTU", null, status))
+            channel.trySend(BLEResult("MTU", null, status)).isSuccess
         }
 
         override fun onCharacteristicRead(
@@ -227,7 +227,7 @@ object BLEManager {
                     }
                 }
 
-                channel.offer(BLEResult(characteristic.uuid.toString(), value, status))
+                channel.trySend(BLEResult(characteristic.uuid.toString(), value, status)).isSuccess
             }
         }
 
@@ -252,7 +252,7 @@ object BLEManager {
                     }
                 }
 
-                channel.offer(BLEResult(characteristic.uuid.toString(), value, status))
+                channel.trySend(BLEResult(characteristic.uuid.toString(), value, status)).isSuccess
             }
         }
 
@@ -272,7 +272,7 @@ object BLEManager {
             status: Int
         ) {
             with (descriptor) {
-                channel.offer(BLEResult(uuid.toString(), value, status))
+                channel.trySend(BLEResult(uuid.toString(), value, status)).isSuccess
             }
         }
     } // End of Connection Callback

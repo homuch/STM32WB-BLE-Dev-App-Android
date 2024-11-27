@@ -9,6 +9,7 @@ import android.widget.TableLayout
 import android.widget.TableRow
 import android.widget.TextView
 import androidx.annotation.RequiresApi
+import androidx.core.view.setPadding
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
 import com.stm.bledemo.R
@@ -16,7 +17,7 @@ import com.stm.bledemo.ble.GAP
 import com.stm.bledemo.databinding.FragmentAdvertisingDataBinding
 import com.stm.bledemo.extension.hexToASCII
 import com.stm.bledemo.extension.toHexString
-import org.jetbrains.anko.padding
+//import org.jetbrains.anko.padding
 import timber.log.Timber
 
 class AdvertisingDataFragment(private val result: ScanResult): DialogFragment() {
@@ -144,10 +145,9 @@ class AdvertisingDataFragment(private val result: ScanResult): DialogFragment() 
     }
 
     private fun createTextView(sText: String, drawID: Int, weight: Float): TextView {
-        return TextView(activity).apply {
+        val view = TextView(activity).apply {
             text = sText
             textSize = 18f
-            padding = 10
             setBackgroundResource(drawID)
             layoutParams = TableRow.LayoutParams(
                 0,
@@ -156,5 +156,7 @@ class AdvertisingDataFragment(private val result: ScanResult): DialogFragment() 
             )
             gravity = Gravity.FILL
         }
+        view.setPadding(10)
+        return view
     }
 }

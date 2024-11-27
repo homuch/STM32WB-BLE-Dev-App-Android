@@ -120,16 +120,17 @@ class ScanActivity : AppCompatActivity(), ScanAdapter.Delegate, ScanInterface {
         val searchView = item?.actionView as SearchView
 
         // Search Item on toolbar expanded/collapsed
-        item.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
-            override fun onMenuItemActionExpand(item: MenuItem?): Boolean {
+        val expandListener = object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: MenuItem): Boolean {
                 return true
             }
 
-            override fun onMenuItemActionCollapse(item: MenuItem?): Boolean {
+            override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
                 BLEManager.deviceNameFilter = ""
                 return true
             }
-        })
+        }
+        item.setOnActionExpandListener(expandListener)
 
         // Text entered into searchView on toolbar
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
