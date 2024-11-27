@@ -6,6 +6,7 @@ import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.annotation.RequiresApi
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
@@ -14,7 +15,12 @@ import com.stm.bledemo.R
 import com.stm.bledemo.activity.scan.fragment.AdvertisingDataFragment
 import com.stm.bledemo.ble.BLEManager
 import com.stm.bledemo.databinding.RowScanResultBinding
+import java.util.Locale
+import java.util.UUID
 import kotlin.collections.ArrayList
+import kotlin.math.abs
+import kotlin.random.Random
+import kotlin.math.pow
 
 @SuppressLint("NotifyDataSetChanged", "MissingPermission")
 class ScanAdapter (
@@ -23,6 +29,27 @@ class ScanAdapter (
 ) : RecyclerView.Adapter<ScanAdapter.ViewHolder>() {
 
     private val itemsCopy: ArrayList<ScanResult> = arrayListOf()
+    private val artworkTitles = listOf(
+        "Starry Night",
+        "Mona Lisa",
+        "The Scream",
+        "The Persistence of Memory",
+        "Guernica",
+        "American Gothic",
+        "The Kiss",
+        "The Birth of Venus",
+        "Girl with a Pearl Earring",
+        "The Great Wave off Kanagawa"
+    )
+    private val imageResources = listOf(
+        R.drawable.ic_paint,
+        R.drawable.ic_paint2,
+        R.drawable.ic_statue,
+        R.drawable.ic_masks,
+        R.drawable.ic_abstract,
+        R.drawable.ic_origami
+    )
+    private val colorResources = listOf(R.color.st_pink, R.color.teal_200, R.color.purple_200, R.color.purple_700, R.color.green, R.color.orange)
 
     interface Delegate {
         fun onConnectButtonClick(result: ScanResult)
@@ -58,13 +85,21 @@ class ScanAdapter (
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val result = items[position]
+        // Generating a random index based on the device address for consistent image and color
+        val randomNameIndex = abs(result.device.address.hashCode()) % artworkTitles.size
+        val randomIndex = abs(result.device.address.hashCode()) % imageResources.size
 
         with(holder.binding) {
-            deviceName.text = result.device.name ?: "Unnamed"
+            deviceName.text = result.device.name ?: artworkTitles[randomNameIndex]
             macAddress.text = result.device.address
             signalStrength.text = "${result.rssi} dBm"
+            val distance = 10.0.pow((-15 - result.rssi) / 30.0)
+            estiDist.text = String.format(Locale.getDefault(), "%.2f m", distance / 100.0)
+            bluetoothIcon.setImageResource(imageResources[randomIndex])
+            bluetoothIcon.imageTintList = ContextCompat.getColorStateList(holder.itemView.context, colorResources[randomIndex])
 
-            connectButton.visibility = if (!result.isConnectable) View.GONE else View.VISIBLE
+//            connectButton.visibility = if (!result.isConnectable) View.GONE else View.VISIBLE
+            connectButton.visibility = View.GONE
         }
     }
 
