@@ -32,7 +32,7 @@ private const val CCC_DESCRIPTOR_UUID = "00002902-0000-1000-8000-00805f9b34fb"
 @Suppress("unused")
 @SuppressLint("NotifyDataSetChanged", "MissingPermission")
 object BLEManager {
-    var whiteListAddress = mutableListOf("F6:8C:F2:D3:EA:E7")
+    var whiteListAddress = mutableListOf("F6:8C:F2:D3:EA:E7","CC:35:4F:EB:4D:E3")
 
     var scanInterface: ScanInterface? = null
     var connectionInterface: ConnectionInterface? = null
@@ -113,8 +113,10 @@ object BLEManager {
     private val scanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
             if (whiteListAddress.indexOf(result.device.address) == -1 ){
+//                Timber.tag("mytest").d(result.device.address)
                 return
             }
+
             val indexQuery = scanResults.indexOfFirst { it.device.address == result.device.address }
 
             if (indexQuery != -1) { // Updates Existing Scan Result

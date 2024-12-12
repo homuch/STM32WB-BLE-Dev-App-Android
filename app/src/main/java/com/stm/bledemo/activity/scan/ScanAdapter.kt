@@ -26,6 +26,7 @@ import com.stm.bledemo.R
 import com.stm.bledemo.activity.scan.fragment.AdvertisingDataFragment
 import com.stm.bledemo.ble.BLEManager
 import com.stm.bledemo.databinding.RowScanResultBinding
+import com.stm.bledemo.extension.toHexString
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
@@ -36,13 +37,14 @@ import kotlinx.coroutines.*
 import java.time.Instant
 import kotlin.math.abs
 import kotlin.math.pow
-
+import com.stm.bledemo.filter.KalmanFilter
 
 @SuppressLint("NotifyDataSetChanged", "MissingPermission")
 class ScanAdapter (
     private val items: List<ScanResult>,
     private val delegate: Delegate,
-    private val context: Context
+    private val context: Context,
+    private val whiteListAddress: List<String>
 ) : RecyclerView.Adapter<ScanAdapter.ViewHolder>() {
 
     private val itemsCopy: ArrayList<ScanResult> = arrayListOf()
@@ -75,9 +77,9 @@ class ScanAdapter (
     private var audioPlayJob: Job? = null
     private var lastPlayTime = 0L
     private var shouldStopAudio = false
+    private var curPlayingId = 0
 
-    private val filename = "rssi_data.csv"
-    private val downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+    private val kalmanFilter = KalmanFilter()
 
     private val audioUri_android = Uri.parse("android.resource://" + context.packageName + "/" + R.raw.android)
     private val audioUri_haruhi = Uri.parse("android.resource://" + context.packageName + "/" + R.raw.haruhi_03)
@@ -135,10 +137,12 @@ class ScanAdapter (
         return ViewHolder(binding)
     }
 
-    fun changeMediaItemAndPlay(newMediaItem: MediaItem) {
-        player.setMediaItem(newMediaItem)
+    private fun changeMediaItem(newMediaId: Int) {
+        if(curPlayingId == newMediaId)return
+        curPlayingId = newMediaId
+        player.setMediaItem(mediaItemList[curPlayingId])
         player.prepare()
-        player.play()
+//        player.play()
         //player.playWhenReady = true
     }
 
@@ -153,34 +157,53 @@ class ScanAdapter (
         if ((rssiHistory[address]?.size ?: 0) > averageFilterSize) {
             rssiHistory[address]?.removeFirstOrNull()
         }
-        Timber.tag("RSSI History")
-            .d("Test")
-        Timber.tag("RSSI History").d("Address: $address, Size: ${rssiHistory[address]?.size}")
+        if(whiteListAddress.indexOf(address) != -1) {
+            Timber.tag("RSSI History")
+                .d("Test")
+            Timber.tag("RSSI History").d("Address: $address, Size: ${rssiHistory[address]?.size}")
+        }
 
         // Calculate average RSSI
         val rssiValues = rssiHistory[address]?.map { it.first } ?: listOf(result.rssi)
-        val avgRssi = calculateMedian(rssiValues)
+//        val avgRssi = calculateMedian(rssiValues)
+        val filteredValue = kalmanFilter.filter(result.rssi)
 
         // Store recent 2000 RSSI values and their recorded time
-        val recentRssiValues = rssiHistory[address]?.takeLast(2000) ?: emptyList()
+//        val recentRssiValues = rssiHistory[address]?.takeLast(2000) ?: emptyList()
 
+        val rawData = result.scanRecord?.bytes?.toHexString()?.substring(2)
+        val warningMsg = rawData?.substring(8,10)
+        if(warningMsg == "62")
+            Timber.tag("Raw Data").d("Address: $address, Warning: $warningMsg")
 
         // Generating a random index based on the device address for consistent image and color
         val randomNameIndex = abs(result.device.address.hashCode()) % artworkTitles.size
         val randomIndex = abs(result.device.address.hashCode()) % imageResources.size
-
         with(holder.binding) {
             deviceName.text = result.device.name ?: artworkTitles[randomNameIndex]
             macAddress.text = result.device.address
             signalStrength.text = "${result.rssi} dBm"
-            val distance = 10.0.pow((stmTxPower - result.rssi) / (10.0 * stmRSSIN))
+            val distance = 10.0.pow((stmTxPower - filteredValue) / (10.0 * stmRSSIN))
+//            val distance = 10.0.pow((stmTxPower - result.rssi) / (10.0 * stmRSSIN))
             estiDist.text = String.format(Locale.getDefault(), "%.2f m", distance)
             bluetoothIcon.setImageResource(imageResources[randomIndex])
             bluetoothIcon.imageTintList = ContextCompat.getColorStateList(holder.itemView.context, colorResources[randomIndex])
 
             connectButton.visibility = if (!result.isConnectable) View.GONE else View.VISIBLE
 
+            dumpFile.visibility = View.GONE
+            dumpFile.setOnClickListener {
+                val recentRssiValues = rssiHistory[address]?.takeLast(2000) ?: emptyList()
+                saveRssiDataToFile(recentRssiValues, address)
+            }
+
+
             if (distance < 3) {
+                if(!isAudioPlaying){
+                    val id = whiteListAddress.indexOf(result.device.address)
+                    if(id<0)return
+                    changeMediaItem(id)
+                }
                 isAudioPlaying = true
                 lastPlayTime = System.currentTimeMillis()
                 playAudioForDuration(2000) // Play for 2 seconds
@@ -265,13 +288,15 @@ class ScanAdapter (
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun saveRssiDataToFile(rssiData: List<Pair<Int, Instant>>, address: String) {
+    private fun saveRssiDataToFile(recentRssiValues: List<Pair<Int, Instant>>, address: String) {
+        val filename = "rssi_data_${address.replace(":", "_")}.csv"
+        val downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         try {
             val file = File(downloadDir, filename)
-            val fileOutputStream = FileOutputStream(file, true)
+            val fileOutputStream = FileOutputStream(file, false) // false for overwrite
 
-            rssiData.forEach { (rssi, time) ->
-                val timestamp = time.toEpochMilli()
+            recentRssiValues.forEach { (rssi, time) ->
+                val timestamp = time.epochSecond
                 val line = "$timestamp,$rssi,$address\n"
                 fileOutputStream.write(line.toByteArray())
             }
