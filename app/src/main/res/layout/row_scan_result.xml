@@ -83,5 +83,13 @@
             app:layout_constraintEnd_toStartOf="@+id/connectButton"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <Button
+            android:id="@+id/dumpFile"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Dump"
+            tools:layout_editor_absoluteX="159dp"
+            tools:layout_editor_absoluteY="8dp" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

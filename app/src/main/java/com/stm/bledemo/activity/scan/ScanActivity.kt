@@ -175,7 +175,7 @@ class ScanActivity : AppCompatActivity(), ScanAdapter.Delegate, ScanInterface {
     // Sets Up the Recycler View for BLE Scan List
     private fun setupRecyclerView() {
         // Create & Set Adapter
-        BLEManager.scanAdapter = ScanAdapter(BLEManager.scanResults, this)
+        BLEManager.scanAdapter = ScanAdapter(BLEManager.scanResults, this, applicationContext)
 
         binding.scanResultsRecyclerView.apply {
             adapter = BLEManager.scanAdapter

@@ -32,6 +32,7 @@ private const val CCC_DESCRIPTOR_UUID = "00002902-0000-1000-8000-00805f9b34fb"
 @Suppress("unused")
 @SuppressLint("NotifyDataSetChanged", "MissingPermission")
 object BLEManager {
+    var whiteListAddress = mutableListOf("F6:8C:F2:D3:EA:E7")
 
     var scanInterface: ScanInterface? = null
     var connectionInterface: ConnectionInterface? = null
@@ -99,6 +100,10 @@ object BLEManager {
         }
     }
 
+    fun addIntoWhitelist(address: String){
+        whiteListAddress.add(address)
+    }
+
     // Set Scan Settings (Low Latency High Power Usage)
     private val scanSettings = ScanSettings.Builder()
         .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
@@ -107,6 +112,9 @@ object BLEManager {
     // Scan Result Callback
     private val scanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
+            if (whiteListAddress.indexOf(result.device.address) == -1 ){
+                return
+            }
             val indexQuery = scanResults.indexOfFirst { it.device.address == result.device.address }
 
             if (indexQuery != -1) { // Updates Existing Scan Result
