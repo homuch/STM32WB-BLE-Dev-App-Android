@@ -16,12 +16,12 @@
     <string name="ok">OK</string>
     <string name="rssi_filter">RSSI Filter</string>
     <string name="read">Read</string>
-    <string name="send_message">Send Message (Hex)</string>
+    <string name="send_message">Enter the new Name</string>
     <string name="write">Write</string>
     <string name="notify">Notify</string>
     <string name="bluetooth_icon">Bluetooth Icon</string>
     <string name="data">Data</string>
-    <string name="connect">Connect</string>
+    <string name="connect">Edit</string>
     <string name="search">Search</string>
     <string name="scan">Scan</string>
     <string name="no_response">No Response</string>

@@ -6,8 +6,8 @@ class KalmanFilter(
     private var F: Double = 1.0, // State Transition Matrix
     private var H: Double = 1.0, // Measurement Matrix
     private var P: Double = 1000.0, // Covariance Matrix
-    private var R: Double = 20.0,  // Measurement Noise Covariance
-    private var Q: Double = 0.02  // Process Noise Covariance
+    private var R: Double = 15.0,  // Measurement Noise Covariance (Smaller value for faster response)
+    private var Q: Double = 0.8  // Process Noise Covariance (Larger value for faster response)
 ) {
 
     fun predict() {

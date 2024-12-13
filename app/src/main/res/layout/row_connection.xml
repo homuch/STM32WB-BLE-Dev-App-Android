@@ -6,6 +6,7 @@
     <data />
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/wholeLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingHorizontal="10dp"
@@ -13,48 +14,53 @@
 
         <TextView
             android:id="@+id/itemName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            tools:text="Service"
-            android:textSize="20sp"
+            android:layout_width="291dp"
+            android:layout_height="102dp"
+            android:layout_marginEnd="48dp"
+            android:paddingTop="20sp"
+            android:textAlignment="center"
+            android:textSize="24sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent" />
+            tools:text="Service" />
 
         <TextView
             android:id="@+id/itemUUID"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            tools:text="UUID"
             android:textSize="20sp"
+            android:visibility="gone"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintRight_toRightOf="parent" />
+            tools:text="UUID" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/readLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            app:layout_constraintTop_toBottomOf="@+id/itemName"
-            app:layout_constraintLeft_toLeftOf="parent" >
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/itemName">
 
             <TextView
                 android:id="@+id/readValue"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                tools:text="Value"
                 android:textSize="20sp"
-                app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent" />
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="Value" />
 
             <Button
                 android:id="@+id/readButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/read"
-                app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintRight_toRightOf="parent" />
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -63,31 +69,30 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            app:layout_constraintTop_toBottomOf="@+id/readLayout"
-            app:layout_constraintLeft_toLeftOf="parent" >
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/readLayout">
 
             <EditText
                 android:id="@+id/writeEditText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="20dp"
                 android:hint="@string/send_message"
+                android:importantForAutofill="no"
+                android:inputType="text"
                 android:minHeight="48dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toLeftOf="@+id/writeButton"
-                app:layout_constraintTop_toTopOf="parent"
-                android:importantForAutofill="no"
-                android:inputType="text" />
+                app:layout_constraintTop_toTopOf="parent" />
 
             <Button
                 android:id="@+id/writeButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/write"
-                app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintRight_toRightOf="parent" />
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -96,28 +101,28 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            app:layout_constraintTop_toBottomOf="@+id/writeLayout"
-            app:layout_constraintLeft_toLeftOf="parent" >
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/writeLayout">
 
             <TextView
                 android:id="@+id/notifyValue"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                tools:text="Value"
                 android:textSize="20sp"
-                app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent" />
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="Value" />
 
             <androidx.appcompat.widget.SwitchCompat
                 android:id="@+id/notifySwitch"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="@string/notify"
                 android:checked="false"
-                app:layout_constraintTop_toTopOf="parent"
+                android:text="@string/notify"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintRight_toRightOf="parent" />
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

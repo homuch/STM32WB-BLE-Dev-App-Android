@@ -14,6 +14,7 @@ import com.stm.bledemo.extension.hexToByteArray
 import com.stm.bledemo.extension.removeWhiteSpace
 import com.stm.bledemo.extension.toHexString
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @SuppressLint("NotifyDataSetChanged")
 class ConnectionAdapter : RecyclerView.Adapter<ConnectionAdapter.ViewHolder>() {
@@ -36,7 +37,20 @@ class ConnectionAdapter : RecyclerView.Adapter<ConnectionAdapter.ViewHolder>() {
                     BLEManager.scope.launch {
                         if (writeEditText.text.isNotEmpty()) {
                             val item = items[bindingAdapterPosition]
-                            val byteMessage = writeEditText.text.toString().removeWhiteSpace().hexToByteArray()
+                            Timber.tag("Write").d("Write Button Clicked")
+                            Timber.tag("Write").d("Send Message: ${writeEditText.text}")
+                            Timber.tag("Write").d("Send Message: ${writeEditText.text.toString().toByteArray().toHexString().substring(2).removeWhiteSpace()}")
+
+                            val byteMessage = writeEditText
+                                .text
+                                .toString()
+                                .toByteArray()
+                                .toHexString()
+                                .substring(2)
+                                .removeWhiteSpace()
+                                .hexToByteArray()
+
+//                            val byteMessage = writeEditText.text.toString().removeWhiteSpace().hexToByteArray()
                             BLEManager.writeCharacteristic(item.characteristic, byteMessage)
                         }
 
@@ -77,15 +91,27 @@ class ConnectionAdapter : RecyclerView.Adapter<ConnectionAdapter.ViewHolder>() {
         val item = items[position]
 
         with(holder.binding) {
-            itemName.text = item.name
+            itemName.text = if(item.name == "Device Name"){
+                "Rename the Artwork ε٩(๑> ₃ <)۶з"
+            } else {
+                item.name
+            }
+
+            val shouldBeRemoved = item.name != "Device Name"
+
+            if(shouldBeRemoved){
+                wholeLayout.isGone = true
+            }
+
 
             if (item.indicatable) item.notifyLabel = "Indicate"
             notifySwitch.text = item.notifyLabel
             notifySwitch.isChecked = item.notify
 
-            readLayout.isGone = !item.readable
-            writeLayout.isGone = !(item.writable || item.writableNoResponse)
-            notifyLayout.isGone = !(item.notifiable || item.indicatable)
+//            readLayout.isGone = !item.readable// || shouldBeRemoved
+            readLayout.isGone = true
+            writeLayout.isGone = !(item.writable || item.writableNoResponse)// || shouldBeRemoved
+            notifyLayout.isGone = !(item.notifiable || item.indicatable) //|| shouldBeRemoved
 
             if (item.type == "Characteristic") {
                 itemUUID.text = item.characteristic?.uuid
@@ -106,7 +132,9 @@ class ConnectionAdapter : RecyclerView.Adapter<ConnectionAdapter.ViewHolder>() {
     override fun getItemCount() = items.size
 
     fun addItemList(itemList: List<ConnectionItem>) {
-        items.addAll(itemList)
+        items.addAll(itemList.filter{
+            it.name == "Device Name"
+        })
         notifyDataSetChanged()
     }
 

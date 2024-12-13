@@ -24,6 +24,7 @@ import kotlinx.coroutines.channels.Channel
 import timber.log.Timber
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.concurrent.timerTask
 
 const val ENABLE_BLUETOOTH_REQUEST_CODE = 1
 private const val GATT_MAX_MTU_SIZE = 517

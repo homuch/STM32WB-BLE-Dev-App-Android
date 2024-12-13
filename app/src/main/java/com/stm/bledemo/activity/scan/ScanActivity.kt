@@ -49,7 +49,8 @@ class ScanActivity : AppCompatActivity(), ScanAdapter.Delegate, ScanInterface {
 
     override fun onResume() {
         super.onResume()
-
+        BLEManager.startScan(this)
+        scanItem?.setIcon(R.drawable.ic_play)
         if (!bAdapter.isEnabled) {
             promptEnableBluetooth()
         }
@@ -117,8 +118,20 @@ class ScanActivity : AppCompatActivity(), ScanAdapter.Delegate, ScanInterface {
             title = "$title ${BuildConfig.VERSION_NAME}"
         }
 
+        val filterItem = menu.findItem(R.id.rssiFilterItem)
+        filterItem?.isVisible = false
+
+        val deviceInfoItem = menu.findItem(R.id.deviceInfoItem)
+        deviceInfoItem?.isVisible = false
+
+        val appVersionItem = menu.findItem(R.id.appVersionItem)
+        appVersionItem?.isVisible = false
+
+
         scanItem = menu.findItem(R.id.scanItem)
+        scanItem?.isVisible = false
         val item = menu.findItem(R.id.searchItem)
+        item?.isVisible = false
         val searchView = item?.actionView as SearchView
 
         // Search Item on toolbar expanded/collapsed
@@ -229,8 +242,8 @@ class ScanActivity : AppCompatActivity(), ScanAdapter.Delegate, ScanInterface {
     }
 
     override fun startToast(message: String) {
-        runOnUiThread {
-            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-        }
+//        runOnUiThread {
+//            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+//        }
     }
 }

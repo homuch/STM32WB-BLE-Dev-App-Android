@@ -3,6 +3,7 @@ package com.stm.bledemo.activity.scan
 import android.annotation.SuppressLint
 import android.bluetooth.le.ScanResult
 import android.content.Context
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -76,14 +77,15 @@ class ScanAdapter(
         R.color.green,
         R.color.orange
     )
-    private val stmTxPower = -44.20289855
-    private val stmRSSIN = 4.830917874
+    private val stmTxPower = -67.82841823
+    private val stmRSSIN = 2.680965147
     private val averageFilterSize = 2000
     private var isAudioPlaying = false
     private var audioPlayJob: Job? = null
     private var lastPlayTime = 0L
     private var shouldStopAudio = false
     private var curPlayingId = 0
+    private var lastDangerAlertTime = 0L
 
     private val kalmanFilterList = MutableList(whiteListAddress.size) { KalmanFilter() }
 
@@ -99,6 +101,9 @@ class ScanAdapter(
         MediaItem.fromUri(audioUri_android),
         MediaItem.fromUri(audioUri_haruhi)
     )
+
+    private val lastDistanceList = mutableListOf<Double>(0.0, 0.0)
+    private val weight = 0
 
 
     private val player: Player = ExoPlayer.Builder(context).build().also { exoPlayer ->
@@ -117,7 +122,7 @@ class ScanAdapter(
         })
     }
 
-    companion object DialogListener: AlertDialogFragment.DialogListener {
+    companion object DialogListener : AlertDialogFragment.DialogListener {
         override fun onDialogClosed() {
             Timber.tag("Dialog").d("Closed")
 //            TODO("Not yet implemented")
@@ -139,9 +144,9 @@ class ScanAdapter(
                 delegate.onConnectButtonClick(result)
             }
             itemView.setOnClickListener {
-                val result = items[bindingAdapterPosition]
-                val dialog = AdvertisingDataFragment(result)
-                delegate.onItemClick(dialog)
+//                val result = items[bindingAdapterPosition]
+//                val dialog = AdvertisingDataFragment(result)
+//                delegate.onItemClick(dialog)
             }
         }
     }
@@ -177,13 +182,14 @@ class ScanAdapter(
         // Store RSSI history
         rssiHistory.getOrPut(address) { mutableListOf() }.add(result.rssi)
         if (rssiHistory[address]?.size!! > averageFilterSize) {
-            rssiHistory[address]?.removeFirst()
+            rssiHistory[address]?.remove(0)
         }
-//        Timber.tag("RSSI History").d("Address: $address, Size: ${rssiHistory[address]?.size}")
+        Timber.tag("RSSI History").d("Address: $address, Size: ${rssiHistory[address]?.size}")
 
 //        val filteredValue = kalmanFilter.filter(result.rssi)
 
         val filteredValue = if (whiteListId < 0) {
+            Timber.tag("filter").d("No Whitelist")
             result.rssi.toDouble()
         } else {
             kalmanFilterList[whiteListId].filter(result.rssi)
@@ -204,21 +210,39 @@ class ScanAdapter(
         } else {
             null
         }
-        if(deviceNameExtended != null){ Timber.tag("Device Name").d(deviceNameExtended) }
+        if (deviceNameExtended != null) {
+            Timber.tag("Device Name").d(deviceNameExtended)
+        }
 
         val dangerStateChar = result.scanRecord?.bytes?.get(25)?.toInt()?.toChar()
-        if(dangerStateChar == 'b'){
+        val currentTime = System.currentTimeMillis()
+        if (dangerStateChar == 'b' && (currentTime - lastDangerAlertTime) > 1000) { // Check if 5 seconds have passed
             Timber.tag("Danger State").d(dangerStateChar.toString())
             Timber.tag("Danger State").d(result.device.address)
             vibratorService.vibrate(500)
-        }
+            delegate.showAlertDialog(
+                deviceNameExtended ?: result.device.name ?: artworkTitles[randomNameIndex],
+                "is in danger!!",
+                DialogListener
+            )
+            lastDangerAlertTime = currentTime // Update last alert time
+        }                                   // to prevent frequent alerts.
 
 
 
         with(holder.binding) {
+            if(isAudioPlaying && whiteListId == curPlayingId)
+                scanResultRow.background = ColorDrawable(ContextCompat.getColor(context, R.color.green))
+            else {
+                scanResultRow.background = null
+            }
+
+            Timber.tag("audio").d("isAudioPlaying: ${isAudioPlaying}, curPlayingId: $curPlayingId, whiteListId: $whiteListId")
+
             deviceName.text = deviceNameExtended ?: artworkTitles[randomNameIndex]
             macAddress.text = result.device.address
             signalStrength.text = "${result.rssi} dBm"
+//            signalStrength.text = "${filteredValue} dBm"
             val distance = 10.0.pow((stmTxPower - filteredValue) / (10.0 * stmRSSIN))
 //            val distance = 10.0.pow((stmTxPower - result.rssi) / (10.0 * stmRSSIN))
             estiDist.text = String.format(Locale.getDefault(), "%.2f m", distance)
@@ -230,12 +254,13 @@ class ScanAdapter(
 
             connectButton.visibility = if (!result.isConnectable) View.GONE else View.VISIBLE
 
-            dumpFile.visibility = View.GONE
+            dumpFile.visibility = View.VISIBLE
             dumpFile.setOnClickListener {
-//                val recentRssiValues = rssiHistory[address]?.takeLast(2000) ?: emptyList()
+                val recentRssiValues = rssiHistory[address]?.takeLast(2000) ?: emptyList()
 //                saveRssiDataToFile(recentRssiValues, address)
-                vibratorService.vibrate(500) // Vibrate for 500 milliseconds
+//                vibratorService.vibrate(500) // Vibrate for 500 milliseconds
 //                showCustomDialog(context)
+                saveRssiDataToFile(recentRssiValues, address)
 
                 delegate.showAlertDialog(
                     "test",
@@ -243,12 +268,10 @@ class ScanAdapter(
                     DialogListener)
             }
 
-
-            if (distance < 3) {
+            if (whiteListId < 0) return
+            if (distance < 1.3) {
                 if (!isAudioPlaying) {
-                    val id = whiteListAddress.indexOf(result.device.address)
-                    if (id < 0) return
-                    changeMediaItem(id)
+                    changeMediaItem(whiteListId)
                 }
                 isAudioPlaying = true
                 lastPlayTime = System.currentTimeMillis()
@@ -256,12 +279,19 @@ class ScanAdapter(
                 playAudioForDuration(2000) // Play for 2 seconds
 
             } else {
-                shouldStopAudio = true
-                // Delay stopping the audio to ensure it plays for at least 2 seconds
-                CoroutineScope(Dispatchers.Main).launch {
-                    delay(2000)
-//                    if (shouldStopAudio) stopAudio()
+//                playAudioForDuration(0)
+//                shouldStopAudio = true
+                if(distance > 3 && curPlayingId == whiteListId){
+                    stopAudio()
                 }
+//                if(System.currentTimeMillis()-lastPlayTime > 3000 && isAudioPlaying){
+//                    stopAudio()
+//                }
+                // Delay stopping the audio to ensure it plays for at least 2 seconds
+//                CoroutineScope(Dispatchers.Main).launch {
+//                    delay(2000)
+////                    if (shouldStopAudio) stopAudio()
+//                }
             }
 
         }
@@ -270,21 +300,18 @@ class ScanAdapter(
     private fun playAudioForDuration(duration: Long) {
         //changeMediaItemAndPlay(mediaItemList[0])
         audioPlayJob?.cancel()
-        isAudioPlaying = false
         if (!player.isPlaying) player.play()
         Timber.tag("Audio").d("Audio Started")
         audioPlayJob = CoroutineScope(Dispatchers.Main).launch {
             delay(duration)
-            if (!isAudioPlaying) {
-                stopAudio()
-            }
+            stopAudio()
         }
     }
 
 
     private fun stopAudio() {
         Timber.tag("Audio").d("Audio Stopped")
-        shouldStopAudio = false
+//        shouldStopAudio = false
         player.pause() // or player.stop() depending on your desired behavior
         isAudioPlaying = false
         audioPlayJob?.cancel()

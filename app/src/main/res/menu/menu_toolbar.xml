@@ -4,32 +4,36 @@
 
     <item
         android:id="@+id/searchItem"
-        android:title="@string/search"
         android:icon="@drawable/ic_search"
+        android:title="@string/search"
+        android:visibility="gone"
         app:actionViewClass="androidx.appcompat.widget.SearchView"
         app:showAsAction="always|collapseActionView" />
 
     <item
         android:id="@+id/scanItem"
-        android:title="@string/scan"
         android:icon="@drawable/ic_pause"
+        android:title="@string/scan"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/rssiFilterItem"
-        android:title="@string/rssi_filter"
         android:icon="@drawable/ic_signal"
+        android:title="@string/rssi_filter"
+        android:visibility="gone"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/deviceInfoItem"
-        android:title="@string/device_info"
         android:icon="@drawable/ic_phone_android"
+        android:title="@string/device_info"
+        android:visibility="gone"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/appVersionItem"
         android:title="@string/app_version"
+        android:visibility="gone"
         app:showAsAction="never" />
 
 </menu>
