@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/dialogLayout"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@color/orange"
+    android:clipChildren="true"
+    android:orientation="vertical"
+    android:padding="0dp"
+    app:layout_constraintHeight_max="wrap"
+    app:layout_constraintWidth_min="wrap">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="328dp"
+        android:layout_height="156dp"
+        android:background="#5B1E75"
+        app:cardBackgroundColor="@color/orange">
+
+        <TextView
+            android:id="@+id/dialogTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="#00FFFFFF"
+            android:gravity="center_horizontal|top"
+            android:paddingBottom="16dp"
+            android:text="Dialog Title"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/dialogMessage"
+            android:layout_width="318dp"
+            android:layout_height="match_parent"
+            android:background="#00FFFFFF"
+            android:gravity="center"
+            android:minHeight="20dp"
+            android:text="Dialog message goes here"
+            android:textSize="16sp" />
+
+        <Button
+            android:id="@+id/closeButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginRight="16dp"
+            android:text="close" />
+    </androidx.cardview.widget.CardView>
+
+</LinearLayout>

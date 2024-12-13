@@ -22,6 +22,7 @@ import androidx.recyclerview.widget.SimpleItemAnimator
 import com.stm.bledemo.BuildConfig
 import com.stm.bledemo.R
 import com.stm.bledemo.activity.connection.ConnectionActivity
+import com.stm.bledemo.activity.scan.fragment.AlertDialogFragment
 import com.stm.bledemo.activity.scan.fragment.DeviceInfoFragment
 import com.stm.bledemo.activity.scan.fragment.RSSIFilterFragment
 import com.stm.bledemo.ble.BLEManager
@@ -33,6 +34,7 @@ class ScanActivity : AppCompatActivity(), ScanAdapter.Delegate, ScanInterface {
 
     private lateinit var binding: ActivityScanBinding
     private var scanItem: MenuItem? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -165,6 +167,9 @@ class ScanActivity : AppCompatActivity(), ScanAdapter.Delegate, ScanInterface {
             R.id.deviceInfoItem -> {
                 DeviceInfoFragment().show(supportFragmentManager, "deviceInfoFragment")
             }
+//            R.id.alertDialogFragment -> {
+//                AlertDialogFragment().show(supportFragmentManager, "alertDialogFragment")
+//            }
         }
 
         return false
@@ -206,6 +211,12 @@ class ScanActivity : AppCompatActivity(), ScanAdapter.Delegate, ScanInterface {
     // Item Clicked (Show Advertising Data)
     override fun onItemClick(dialog: DialogFragment) {
         dialog.show(supportFragmentManager, "advertisingDataFragment")
+    }
+
+    override fun showAlertDialog(title: String, msg: String, dialogListener: AlertDialogFragment.DialogListener) {
+        AlertDialogFragment
+            .newInstance(title, msg, dialogListener)
+            .show(supportFragmentManager, "alertDialog")
     }
 
     /** Helper Functions */
