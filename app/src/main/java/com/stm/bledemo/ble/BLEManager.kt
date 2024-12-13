@@ -115,7 +115,13 @@ object BLEManager {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
             if (whiteListAddress.indexOf(result.device.address) == -1 ){
 //                Timber.tag("mytest").d(result.device.address)
-                return
+//                return
+                val dangerStateChar = result.scanRecord?.bytes?.get(25)?.toInt()?.toChar()
+                if(dangerStateChar == 'a' || dangerStateChar == 'b'){
+                    whiteListAddress.add(result.device.address)
+                } else {
+                    return
+                }
             }
 
             val indexQuery = scanResults.indexOfFirst { it.device.address == result.device.address }

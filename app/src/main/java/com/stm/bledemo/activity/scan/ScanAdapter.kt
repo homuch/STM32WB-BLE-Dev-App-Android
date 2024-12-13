@@ -37,6 +37,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.util.Locale
 import kotlin.math.abs
+import kotlin.math.min
 import kotlin.math.pow
 
 @SuppressLint("NotifyDataSetChanged", "MissingPermission")
@@ -85,7 +86,9 @@ class ScanAdapter(
     private var lastPlayTime = 0L
     private var shouldStopAudio = false
     private var curPlayingId = 0
-    private var lastDangerAlertTime = 0L
+    private val lastDangerAlertTime = mutableMapOf<String, Long>()
+
+    private val mediaIdCache = mutableMapOf<String, Int>()
 
     private val kalmanFilterList = MutableList(whiteListAddress.size) { KalmanFilter() }
 
@@ -96,11 +99,24 @@ class ScanAdapter(
         Uri.parse("android.resource://" + context.packageName + "/" + R.raw.android)
     private val audioUri_haruhi =
         Uri.parse("android.resource://" + context.packageName + "/" + R.raw.haruhi_03)
+    private val audioUri_monaLisa =
+        Uri.parse("android.resource://" + context.packageName + "/" + R.raw.mona_lisa)
+    private val audioUri_starNight =
+        Uri.parse("android.resource://" + context.packageName + "/" + R.raw.star_night)
 
     private val mediaItemList = listOf(
         MediaItem.fromUri(audioUri_android),
-        MediaItem.fromUri(audioUri_haruhi)
+        MediaItem.fromUri(audioUri_haruhi),
+        MediaItem.fromUri(audioUri_monaLisa),
+        MediaItem.fromUri(audioUri_starNight)
     )
+    private val mediaKeywordsList = listOf(
+        "android",
+        "haruhi",
+        "mona lisa",
+        "star night"
+    )
+
 
     private val lastDistanceList = mutableListOf<Double>(0.0, 0.0)
     private val weight = 0
@@ -171,6 +187,26 @@ class ScanAdapter(
         //player.playWhenReady = true
     }
 
+    private fun getMediaId(newMediaName: String): Int {
+        return mediaIdCache.getOrPut(newMediaName) {
+            mediaKeywordsList.indexOf(
+                mediaKeywordsList.minByOrNull {
+                    levenshteinDistance(it, newMediaName)
+                }
+            )
+        }
+    }
+
+    private fun changeMediaItem(newMediaName: String) {
+        val mostSimilarIndex = getMediaId(newMediaName)
+
+        if (mostSimilarIndex != -1 && curPlayingId != mostSimilarIndex) {
+            curPlayingId = mostSimilarIndex
+            //        player.play()
+            //player.playWhenReady = true
+        }
+    }
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("SetTextI18n")
@@ -192,6 +228,11 @@ class ScanAdapter(
             Timber.tag("filter").d("No Whitelist")
             result.rssi.toDouble()
         } else {
+            if(kalmanFilterList.size <= whiteListId) {
+                kalmanFilterList.addAll(List(whiteListId - kalmanFilterList.size) {
+                    KalmanFilter()
+                })
+            }
             kalmanFilterList[whiteListId].filter(result.rssi)
         }
         // Store recent 2000 RSSI values and their recorded time
@@ -216,16 +257,21 @@ class ScanAdapter(
 
         val dangerStateChar = result.scanRecord?.bytes?.get(25)?.toInt()?.toChar()
         val currentTime = System.currentTimeMillis()
-        if (dangerStateChar == 'b' && (currentTime - lastDangerAlertTime) > 1000) { // Check if 5 seconds have passed
+
+        val lastAlertTime = lastDangerAlertTime.getOrPut(address) { 0 }
+
+        if (dangerStateChar == 'b' && (currentTime - lastAlertTime) > 1000) { // Check if 5 seconds have passed
             Timber.tag("Danger State").d(dangerStateChar.toString())
             Timber.tag("Danger State").d(result.device.address)
             vibratorService.vibrate(500)
             delegate.showAlertDialog(
                 deviceNameExtended ?: result.device.name ?: artworkTitles[randomNameIndex],
                 "is in danger!!",
-                DialogListener
+                DialogListener,
             )
-            lastDangerAlertTime = currentTime // Update last alert time
+            lastDangerAlertTime[address] = currentTime // Update last alert time
+
+
         }                                   // to prevent frequent alerts.
 
 
@@ -271,7 +317,8 @@ class ScanAdapter(
             if (whiteListId < 0) return
             if (distance < 1.3) {
                 if (!isAudioPlaying) {
-                    changeMediaItem(whiteListId)
+//                    changeMediaItem(whiteListId)
+                    changeMediaItem(deviceNameExtended ?: artworkTitles[randomNameIndex].also { player.setMediaItem(mediaItemList[getMediaId(it)]); player.prepare() })
                 }
                 isAudioPlaying = true
                 lastPlayTime = System.currentTimeMillis()
@@ -281,7 +328,7 @@ class ScanAdapter(
             } else {
 //                playAudioForDuration(0)
 //                shouldStopAudio = true
-                if(distance > 3 && curPlayingId == whiteListId){
+                if(distance > 3 && curPlayingId == getMediaId(deviceNameExtended ?: artworkTitles[randomNameIndex])){
                     stopAudio()
                 }
 //                if(System.currentTimeMillis()-lastPlayTime > 3000 && isAudioPlaying){
@@ -380,6 +427,18 @@ class ScanAdapter(
             e.printStackTrace()
         }
     }
+
+    private fun levenshteinDistance(s1: String, s2: String): Int {
+        val costs = IntArray(s2.length + 1)
+        for (i in 0..s1.length) {
+            var lastValue = i;
+            for (j in 0..s2.length) {
+                if (i == 0) { costs[j] = j; }
+                else if (j > 0) { if (s1[i - 1] == s2[j - 1]) { costs[j] = lastValue; } else { val temp = costs[j]; costs[j] = min(min(costs[j - 1], lastValue), temp) + 1; lastValue = temp; }; }; }; };
+        return costs[s2.length];
+    }
+
+
 
 //    private fun showCustomDialog(context: Context) {
 //        progressDialog = ProgressDialog(context)
