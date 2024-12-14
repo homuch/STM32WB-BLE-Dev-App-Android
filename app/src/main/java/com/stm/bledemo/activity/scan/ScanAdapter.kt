@@ -3,6 +3,7 @@ package com.stm.bledemo.activity.scan
 import android.annotation.SuppressLint
 import android.bluetooth.le.ScanResult
 import android.content.Context
+import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Build
@@ -365,6 +366,12 @@ class ScanAdapter(
             )*/
 
             connectButton.visibility = if (!result.isConnectable) View.GONE else View.VISIBLE
+            if(visitor_mode) {
+                connectButton.setBackgroundColor(
+                    Color.rgb(0xAF, 0x5B, 0x56)
+                )
+                connectButton.text = "MORE..."
+            }
 
             dumpFile.visibility = View.GONE
             dumpFile.setOnClickListener {
