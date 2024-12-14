@@ -34,6 +34,7 @@ class ScanActivity : AppCompatActivity(), ScanAdapter.Delegate, ScanInterface {
 
     private lateinit var binding: ActivityScanBinding
     private var scanItem: MenuItem? = null
+    private var alertDialog: AlertDialogFragment? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -227,9 +228,12 @@ class ScanActivity : AppCompatActivity(), ScanAdapter.Delegate, ScanInterface {
     }
 
     override fun showAlertDialog(title: String, msg: String, dialogListener: AlertDialogFragment.DialogListener) {
-        AlertDialogFragment
-            .newInstance(title, msg, dialogListener)
-            .show(supportFragmentManager, "alertDialog")
+        if(alertDialog == null || !alertDialog!!.isVisible){
+            alertDialog = AlertDialogFragment.newInstance(title, msg, dialogListener)
+            alertDialog!!.show(supportFragmentManager, "alertDialog")
+        } else {
+            // ignore the request
+        }
     }
 
     /** Helper Functions */

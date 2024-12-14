@@ -19,11 +19,9 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.recyclerview.widget.RecyclerView
 import com.stm.bledemo.R
-import com.stm.bledemo.activity.scan.fragment.AdvertisingDataFragment
 import com.stm.bledemo.activity.scan.fragment.AlertDialogFragment
 import com.stm.bledemo.ble.BLEManager
 import com.stm.bledemo.databinding.RowScanResultBinding
-import com.stm.bledemo.extension.toHexString
 import com.stm.bledemo.filter.KalmanFilter
 import com.stm.bledemo.utilities.VibratorService
 import kotlinx.coroutines.CoroutineScope
@@ -35,7 +33,6 @@ import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.pow
@@ -85,7 +82,8 @@ class ScanAdapter(
     private var audioPlayJob: Job? = null
     private var lastPlayTime = 0L
     private var shouldStopAudio = false
-    private var curPlayingId = 0
+    private var curPlayingWhiteListId = 0
+    private var curPlayingArtName = ""
     private val lastDangerAlertTime = mutableMapOf<String, Long>()
 
     private val mediaIdCache = mutableMapOf<String, Int>()
@@ -103,18 +101,68 @@ class ScanAdapter(
         Uri.parse("android.resource://" + context.packageName + "/" + R.raw.mona_lisa)
     private val audioUri_starNight =
         Uri.parse("android.resource://" + context.packageName + "/" + R.raw.star_night)
+    private val audioUri_theScream =
+        Uri.parse("android.resource://" + context.packageName + "/" + R.raw.the_scream)
+    private val audioUri_guernica =
+        Uri.parse("android.resource://" + context.packageName + "/" + R.raw.guernica)
+    private val audioUri_david =
+        Uri.parse("android.resource://" + context.packageName + "/" + R.raw.david)
+    private val audioUri_skull =
+        Uri.parse("android.resource://" + context.packageName + "/" + R.raw.skull)
+    private val audioUri_genesis =
+        Uri.parse("android.resource://" + context.packageName + "/" + R.raw.genesis)
+
 
     private val mediaItemList = listOf(
         MediaItem.fromUri(audioUri_android),
-        MediaItem.fromUri(audioUri_haruhi),
         MediaItem.fromUri(audioUri_monaLisa),
-        MediaItem.fromUri(audioUri_starNight)
+        MediaItem.fromUri(audioUri_starNight),
+        MediaItem.fromUri(audioUri_theScream),
+        MediaItem.fromUri(audioUri_guernica),
+        MediaItem.fromUri(audioUri_david),
+        MediaItem.fromUri(audioUri_skull),
+        MediaItem.fromUri(audioUri_genesis)
     )
     private val mediaKeywordsList = listOf(
         "android",
-        "haruhi",
         "mona lisa",
-        "star night"
+        "starry night",
+        "the scream",
+        "guernica",
+        "david",
+        "skull",
+        "genesis"
+    )
+    private val artworkAuthorList =  listOf(
+        "Andrew E. Rubin",
+        "Leonardo da Vinci",
+        "Vincent van Gogh",
+        "Edvard Munch",
+        "Pablo Picasso",
+        "Michelangelo",
+        "Andy Warhol",
+        "Michelangelo"
+    )
+    private val artworkPublishYear = listOf(
+        2003,
+        1517,
+        1889,
+        1893,
+        1937,
+        1504,
+        1974,
+        1512
+    )
+
+    private val artworkLogoList = listOf(
+        R.drawable.ic_android,
+        R.drawable.mona_lisa,
+        R.drawable.starry_night,
+        R.drawable.scream,
+        R.drawable.guernica,
+        R.drawable.david,
+        R.drawable.skull,
+        R.drawable.genesis
     )
 
 
@@ -178,14 +226,6 @@ class ScanAdapter(
         return ViewHolder(binding)
     }
 
-    private fun changeMediaItem(newMediaId: Int) {
-        if (curPlayingId == newMediaId) return
-        curPlayingId = newMediaId
-        player.setMediaItem(mediaItemList[curPlayingId])
-        player.prepare()
-//        player.play()
-        //player.playWhenReady = true
-    }
 
     private fun getMediaId(newMediaName: String): Int {
         return mediaIdCache.getOrPut(newMediaName) {
@@ -197,11 +237,17 @@ class ScanAdapter(
         }
     }
 
-    private fun changeMediaItem(newMediaName: String) {
+    private fun changeMediaItem(newMediaName: String, newMediaWhiteListId: Int) {
+        if(newMediaWhiteListId < 0)return
         val mostSimilarIndex = getMediaId(newMediaName)
 
-        if (mostSimilarIndex != -1 && curPlayingId != mostSimilarIndex) {
-            curPlayingId = mostSimilarIndex
+        if ((mostSimilarIndex != -1 && curPlayingWhiteListId != newMediaWhiteListId)
+            || curPlayingArtName != newMediaName
+            ) {
+            curPlayingWhiteListId = newMediaWhiteListId
+            curPlayingArtName = newMediaName
+            player.setMediaItem(mediaItemList[mostSimilarIndex])
+            player.prepare()
             //        player.play()
             //player.playWhenReady = true
         }
@@ -229,9 +275,12 @@ class ScanAdapter(
             result.rssi.toDouble()
         } else {
             if(kalmanFilterList.size <= whiteListId) {
-                kalmanFilterList.addAll(List(whiteListId - kalmanFilterList.size) {
+                kalmanFilterList.addAll(List(whiteListId - kalmanFilterList.size + 1) {
                     KalmanFilter()
                 })
+            }
+            if(kalmanFilterList.size <= whiteListId){
+                Timber.tag("filter").e("Size: ${kalmanFilterList.size}, whiteListId: $whiteListId")
             }
             kalmanFilterList[whiteListId].filter(result.rssi)
         }
@@ -274,33 +323,37 @@ class ScanAdapter(
 
         }                                   // to prevent frequent alerts.
 
-
+        val artworkId = if(deviceNameExtended != null){
+            getMediaId(deviceNameExtended)
+        } else {null}
 
         with(holder.binding) {
-            if(isAudioPlaying && whiteListId == curPlayingId)
-                scanResultRow.background = ColorDrawable(ContextCompat.getColor(context, R.color.green))
+            if(isAudioPlaying && whiteListId == curPlayingWhiteListId)
+                scanResultRow.background = ColorDrawable(ContextCompat.getColor(context, R.color.gray))
             else {
                 scanResultRow.background = null
             }
 
-            Timber.tag("audio").d("isAudioPlaying: ${isAudioPlaying}, curPlayingId: $curPlayingId, whiteListId: $whiteListId")
+            Timber.tag("audio").d("isAudioPlaying: ${isAudioPlaying}, deviceName: $deviceNameExtended, curPlayingArtworkName: $curPlayingArtName, whiteListId: $whiteListId, audioId: $artworkId")
 
             deviceName.text = deviceNameExtended ?: artworkTitles[randomNameIndex]
-            macAddress.text = result.device.address
-            signalStrength.text = "${result.rssi} dBm"
+//            macAddress.text = result.device.address
+            macAddress.text = artworkAuthorList[artworkId ?: 0] //result.device.address
+            signalStrength.text = artworkPublishYear[artworkId ?: 0].toString() //"${result.rssi} dBm"
 //            signalStrength.text = "${filteredValue} dBm"
             val distance = 10.0.pow((stmTxPower - filteredValue) / (10.0 * stmRSSIN))
 //            val distance = 10.0.pow((stmTxPower - result.rssi) / (10.0 * stmRSSIN))
-            estiDist.text = String.format(Locale.getDefault(), "%.2f m", distance)
-            bluetoothIcon.setImageResource(imageResources[randomIndex])
-            bluetoothIcon.imageTintList = ContextCompat.getColorStateList(
+            estiDist.text = ""//String.format(Locale.getDefault(), "%.2f m", distance)
+//            bluetoothIcon.setImageResource(imageResources[randomIndex])
+            bluetoothIcon.setImageResource(artworkLogoList[artworkId ?: 0])
+            bluetoothIcon.imageTintList = null/*ContextCompat.getColorStateList(
                 holder.itemView.context,
                 colorResources[randomIndex]
-            )
+            )*/
 
             connectButton.visibility = if (!result.isConnectable) View.GONE else View.VISIBLE
 
-            dumpFile.visibility = View.VISIBLE
+            dumpFile.visibility = View.GONE
             dumpFile.setOnClickListener {
                 val recentRssiValues = rssiHistory[address]?.takeLast(2000) ?: emptyList()
 //                saveRssiDataToFile(recentRssiValues, address)
@@ -316,9 +369,12 @@ class ScanAdapter(
 
             if (whiteListId < 0) return
             if (distance < 1.3) {
-                if (!isAudioPlaying) {
+                if (!isAudioPlaying || (curPlayingWhiteListId == whiteListId && curPlayingArtName != deviceNameExtended)) {
 //                    changeMediaItem(whiteListId)
-                    changeMediaItem(deviceNameExtended ?: artworkTitles[randomNameIndex].also { player.setMediaItem(mediaItemList[getMediaId(it)]); player.prepare() })
+                    changeMediaItem(
+                        deviceNameExtended ?: artworkTitles[randomNameIndex],
+                        whiteListId
+                    )
                 }
                 isAudioPlaying = true
                 lastPlayTime = System.currentTimeMillis()
@@ -328,7 +384,7 @@ class ScanAdapter(
             } else {
 //                playAudioForDuration(0)
 //                shouldStopAudio = true
-                if(distance > 3 && curPlayingId == getMediaId(deviceNameExtended ?: artworkTitles[randomNameIndex])){
+                if(distance > 3 && curPlayingWhiteListId == whiteListId){
                     stopAudio()
                 }
 //                if(System.currentTimeMillis()-lastPlayTime > 3000 && isAudioPlaying){
@@ -428,13 +484,20 @@ class ScanAdapter(
         }
     }
 
-    private fun levenshteinDistance(s1: String, s2: String): Int {
+    private fun levenshteinDistance(s1_ori: String, s2_ori: String): Int {
+        val s1 = s1_ori.lowercase()
+        val s2 = s2_ori.lowercase()
+        if(s1 in s2 || s2 in s1) {
+            Timber.tag("levenshtein").d("Distance between $s1 and $s2 is 0")
+            return 0
+        }
         val costs = IntArray(s2.length + 1)
         for (i in 0..s1.length) {
             var lastValue = i;
             for (j in 0..s2.length) {
                 if (i == 0) { costs[j] = j; }
                 else if (j > 0) { if (s1[i - 1] == s2[j - 1]) { costs[j] = lastValue; } else { val temp = costs[j]; costs[j] = min(min(costs[j - 1], lastValue), temp) + 1; lastValue = temp; }; }; }; };
+        Timber.tag("levenshtein").d("Distance between $s1 and $s2 is ${costs[s2.length]}")
         return costs[s2.length];
     }
 

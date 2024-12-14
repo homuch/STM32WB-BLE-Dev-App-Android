@@ -29,6 +29,7 @@
             android:id="@+id/deviceName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
             android:textSize="18sp"
             android:textStyle="bold"
             app:layout_constraintStart_toEndOf="@id/bluetoothIcon"
@@ -36,23 +37,25 @@
             tools:text="Device Name" />
 
         <TextView
-            android:id="@+id/macAddress"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="14sp"
-            app:layout_constraintStart_toEndOf="@id/bluetoothIcon"
-            app:layout_constraintTop_toBottomOf="@id/deviceName"
-            tools:text="XX:XX:XX:XX:XX" />
-
-        <TextView
             android:id="@+id/signal_strength"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
             android:minWidth="65dp"
             android:textSize="14sp"
             app:layout_constraintStart_toEndOf="@+id/bluetoothIcon"
             app:layout_constraintTop_toBottomOf="@+id/macAddress"
             tools:text="-100 dBm" />
+
+        <TextView
+            android:id="@+id/macAddress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textSize="14sp"
+            app:layout_constraintStart_toEndOf="@id/bluetoothIcon"
+            app:layout_constraintTop_toBottomOf="@id/deviceName"
+            tools:text="XX:XX:XX:XX:XX" />
 
         <!--<Button
             android:id="@+id/advertisingButton"
