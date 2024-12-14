@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace 'com.stm.bledemo'
+    namespace 'com.stm.bledemovisitor'
     compileSdk 35
 
     defaultConfig {
-        applicationId 'com.stm.bledemo'
+        applicationId 'com.stm.bledemovisitor'
         minSdk 24
         targetSdk 35
         versionCode 1
