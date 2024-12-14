@@ -13,42 +13,51 @@
     app:layout_constraintWidth_min="wrap">
 
     <androidx.cardview.widget.CardView
+        android:id="@+id/dialogCard"
         android:layout_width="328dp"
-        android:layout_height="156dp"
+        android:layout_height="wrap_content"
         android:background="#5B1E75"
         app:cardBackgroundColor="@color/orange">
 
-        <TextView
-            android:id="@+id/dialogTitle"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:background="#00FFFFFF"
-            android:gravity="center_horizontal|top"
-            android:paddingBottom="16dp"
-            android:text="Dialog Title"
-            android:textSize="20sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/dialogMessage"
-            android:layout_width="318dp"
             android:layout_height="match_parent"
-            android:background="#00FFFFFF"
-            android:gravity="center"
-            android:minHeight="20dp"
-            android:text="Dialog message goes here"
-            android:textSize="16sp" />
+            android:orientation="vertical">
 
-        <Button
-            android:id="@+id/closeButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|center_horizontal"
-            android:layout_marginLeft="16dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginRight="16dp"
-            android:text="close" />
+            <TextView
+                android:id="@+id/dialogTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="#00FFFFFF"
+                android:gravity="center_horizontal|top"
+                android:paddingBottom="16dp"
+                android:text="Dialog Title"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/dialogMessage"
+                android:layout_width="318dp"
+                android:layout_height="wrap_content"
+                android:background="#00FFFFFF"
+                android:gravity="center"
+                android:minHeight="20dp"
+                android:text="Dialog message goes here"
+                android:textSize="16sp" />
+
+            <Button
+                android:id="@+id/closeButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|center_horizontal"
+                android:layout_marginLeft="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginRight="16dp"
+                android:layout_marginBottom="5dp"
+                android:text="close" />
+        </LinearLayout>
+
     </androidx.cardview.widget.CardView>
 
 </LinearLayout>

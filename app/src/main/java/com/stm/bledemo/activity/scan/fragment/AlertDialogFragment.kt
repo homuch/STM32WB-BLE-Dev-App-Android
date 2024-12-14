@@ -14,7 +14,7 @@ import android.widget.TextView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
 import com.stm.bledemo.R
-
+import com.stm.bledemo.activity.scan.visitor_mode
 
 class AlertDialogFragment : DialogFragment() {
 
@@ -58,11 +58,21 @@ class AlertDialogFragment : DialogFragment() {
         val dialogTitle = view.findViewById<TextView>(R.id.dialogTitle)
         val dialogMessage = view.findViewById<TextView>(R.id.dialogMessage)
         val closeButton = view.findViewById<Button>(R.id.closeButton)
-//        val dialogLayout = view.findViewById<LinearLayout>(R.id.dialogLayout)
+        val dialogLayout = view.findViewById<LinearLayout>(R.id.dialogLayout)
+        val cardView = view.findViewById<androidx.cardview.widget.CardView>(R.id.dialogCard)
 
         if (title == null || message == null) {
             dismiss()
             return view
+        }
+
+        if(visitor_mode){
+            dialogLayout.background = ColorDrawable(Color.GRAY)
+            cardView.background = ColorDrawable(Color.GRAY)
+            cardView.minimumHeight = 400
+            dialogLayout.minimumHeight = 400
+            closeButton.setBackgroundColor(resources.getColor(R.color.redred))
+            closeButton.setTextColor(Color.BLACK)
         }
 
         //Set Values

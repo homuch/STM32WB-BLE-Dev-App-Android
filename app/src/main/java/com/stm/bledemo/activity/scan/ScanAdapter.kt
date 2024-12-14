@@ -36,7 +36,7 @@ import java.io.IOException
 import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.pow
-
+import com.stm.bledemo.activity.scan.visitor_mode
 @SuppressLint("NotifyDataSetChanged", "MissingPermission")
 class ScanAdapter(
     private val items: List<ScanResult>,
@@ -165,6 +165,17 @@ class ScanAdapter(
         R.drawable.genesis
     )
 
+    private val artworkDescList = listOf(
+        R.string.android_desc,
+        R.string.mona_lisa_desc,
+        R.string.starry_night_desc,
+        R.string.scream_desc,
+        R.string.guernica_desc,
+        R.string.david_desc,
+        R.string.skull_desc,
+        R.string.genesis_desc
+    )
+
 
     private val lastDistanceList = mutableListOf<Double>(0.0, 0.0)
     private val weight = 0
@@ -204,8 +215,17 @@ class ScanAdapter(
         RecyclerView.ViewHolder(binding.root) {
         init {
             binding.connectButton.setOnClickListener {
-                val result = items[bindingAdapterPosition]
-                delegate.onConnectButtonClick(result)
+                if(visitor_mode){
+                    val extendedTitle = getExtendedDeviceName(items[bindingAdapterPosition]) ?: ""
+                    val artworkId = getMediaId(extendedTitle)
+                    val artworkDesc = context.getString(artworkDescList[artworkId])
+                    delegate.showAlertDialog("About $extendedTitle", artworkDesc, DialogListener)
+                }
+
+                if(!visitor_mode){
+                    val result = items[bindingAdapterPosition]
+                    delegate.onConnectButtonClick(result)
+                }
             }
             itemView.setOnClickListener {
 //                val result = items[bindingAdapterPosition]
@@ -291,15 +311,7 @@ class ScanAdapter(
         val randomNameIndex = abs(result.device.address.hashCode()) % artworkTitles.size
         val randomIndex = abs(result.device.address.hashCode()) % imageResources.size
 
-        val deviceNameExtended = if (result.scanRecord?.bytes != null) {
-            val advBytes = result.scanRecord!!.bytes
-            val nameBytes = advBytes.copyOfRange(5, 12) + advBytes.copyOfRange(15, 25)
-            String(nameBytes, Charsets.UTF_8)
-                .replace(Regex("[^\\x20-\\x7E]"), "") // Remove non-printable characters
-                .trim() // Remove leading/trailing spaces
-        } else {
-            null
-        }
+        val deviceNameExtended = getExtendedDeviceName(result)
         if (deviceNameExtended != null) {
             Timber.tag("Device Name").d(deviceNameExtended)
         }
@@ -310,6 +322,7 @@ class ScanAdapter(
         val lastAlertTime = lastDangerAlertTime.getOrPut(address) { 0 }
 
         if (dangerStateChar == 'b' && (currentTime - lastAlertTime) > 1000) { // Check if 5 seconds have passed
+            if(visitor_mode)return
             Timber.tag("Danger State").d(dangerStateChar.toString())
             Timber.tag("Danger State").d(result.device.address)
             vibratorService.vibrate(500)
@@ -418,6 +431,16 @@ class ScanAdapter(
         player.pause() // or player.stop() depending on your desired behavior
         isAudioPlaying = false
         audioPlayJob?.cancel()
+    }
+
+    private fun getExtendedDeviceName(result: ScanResult): String? {
+        return if (result.scanRecord?.bytes != null) {
+            val advBytes = result.scanRecord!!.bytes
+            val nameBytes = advBytes.copyOfRange(5, 12) + advBytes.copyOfRange(15, 25)
+            String(nameBytes, Charsets.UTF_8)
+                .replace(Regex("[^\\x20-\\x7E]"), "") // Remove non-printable characters
+                .trim() // Remove leading/trailing spaces
+        } else { null }
     }
 
 

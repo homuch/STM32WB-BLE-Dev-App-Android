@@ -30,6 +30,8 @@ import com.stm.bledemo.ble.BLEManager.bAdapter
 import com.stm.bledemo.ble.ENABLE_BLUETOOTH_REQUEST_CODE
 import com.stm.bledemo.databinding.ActivityScanBinding
 
+const val visitor_mode = true
+
 class ScanActivity : AppCompatActivity(), ScanAdapter.Delegate, ScanInterface {
 
     private lateinit var binding: ActivityScanBinding
