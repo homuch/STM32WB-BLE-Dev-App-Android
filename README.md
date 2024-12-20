@@ -8,14 +8,14 @@ ArtSense is built upon Bluetooth Low Energy (BLE) technology to deliver a seamle
 
 **For Visitors:**
 
-1. **Proximity Detection:** As visitors navigate the exhibition space, their Android devices with ArtSense installed continuously scan for nearby BLE beacons. These beacons are strategically positioned in close proximity to individual artworks.
-2. **Beacon Recognition:** When a visitor's device detects a beacon signal, ArtSense identifies the associated artwork based on the beacon's unique identifier.
-3. **Information Display:** The app then dynamically retrieves and displays detailed information about the artwork on the visitor's screen. This information includes:
+- **Proximity Detection:** As visitors navigate the exhibition space, their Android devices with ArtSense installed continuously scan for nearby BLE beacons. These beacons are strategically positioned in close proximity to individual artworks.
+- **Beacon Recognition:** When a visitor's device detects a beacon signal, ArtSense identifies the associated artwork based on the beacon's unique identifier.
+- **Information Display:** The app then dynamically retrieves and displays detailed information about the artwork on the visitor's screen. This information includes:
     - **Artist:** The name of the artist who created the piece.
     - **Title:** The official title of the artwork.
     - **Year of Creation:** The year in which the artwork was completed.
     - **Description:** A comprehensive explanation or analysis of the artwork, providing context and insights.
-4. **Self-Guided Tours:** With ArtSense, visitors can embark on self-guided tours, effortlessly accessing relevant information about each artwork as they encounter it. This immersive experience enhances their understanding and appreciation of the art on display.
+- **Self-Guided Tours:** With ArtSense, visitors can embark on self-guided tours, effortlessly accessing relevant information about each artwork as they encounter it. This immersive experience enhances their understanding and appreciation of the art on display.
 
 **For Curators:**
 
@@ -23,18 +23,14 @@ ArtSense empowers curators with robust tools for efficient artwork information m
 
 **Content Management:**
 
-  - **Artwork Database:** The curator application maintains a centralized database of artwork information, including titles, artists, descriptions, creation years, and associated images.
-  - **Intuitive Interface:** Curators can easily add new artworks, edit existing entries, and delete records through a user-friendly interface within the application.
-  - **Real-time Updates:** Any modifications made to the artwork information in the curator application are automatically synchronized with the ArtSense visitor application in real-time. This ensures that visitors always have access to the most up-to-date details about the artworks on display.
+- **Real-time Updates:** Any modifications made to the artwork information in the curator application are automatically synchronized with the ArtSense visitor application in real-time. This ensures that visitors always have access to the most up-to-date details about the artworks on display.
 
 **Beacon Management:**
 
-  - **BLE Beacon Association:**  The curator application utilizes Bluetooth Low Energy (BLE) technology to establish and manage the connections between physical BLE beacons and individual artworks.
-  - **STM32 Microcontroller Integration:** An STM32 microcontroller board acts as a central hub for controlling and configuring the BLE beacons within the exhibition space.
-  - **Remote Beacon Control:** Curators can remotely assign specific beacons to artworks through the application interface. This involves selecting an artwork from the database and pairing it with a corresponding beacon identifier.
-  - **Dynamic Beacon Mapping:** The application provides a visual representation of the exhibition layout, allowing curators to easily view and modify the beacon-artwork associations.
-  - **Streamlined Exhibition Updates:** The ability to remotely manage beacon assignments significantly simplifies the process of updating exhibitions. Curators can quickly reconfigure the beacons to reflect changes in artwork placement or exhibition content without physically interacting with the beacons.
-  - **Enhanced Flexibility:** The integration of BLE technology and the STM32 microcontroller provides curators with greater flexibility in designing and managing interactive art experiences for visitors.
+- **BLE Beacon Association:**  The curator application utilizes Bluetooth Low Energy (BLE) technology to establish and manage the connections between physical BLE beacons and individual artworks.
+- **STM32 Microcontroller Integration:** An STM32 microcontroller board acts as a central hub for controlling and configuring the BLE beacons within the exhibition space.
+- **Remote Beacon Control:** Curators can remotely assign specific beacons to artworks through the application interface. This involves selecting an artwork from the database and pairing it with a corresponding beacon identifier.
+- **Environmental Monitoring and Alerts:** ArtSense can receive accelerometer data from the STM32 microcontroller. If these conditions exceed predefined thresholds, the app will display an alert to visitors, informing them of potential risks to specific artworks.
 
 ## Project Setup and Launch
 
